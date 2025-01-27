@@ -49,6 +49,25 @@
       border: 1px solid #ddd;
       border-radius: 5px;
       margin-bottom: 10px;
+      cursor: grab;
+    }
+
+    .transaction-box:active {
+      cursor: grabbing;
+    }
+
+    .transaction-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .transaction-left {
+      text-align: left;
+    }
+
+    .transaction-right {
+      text-align: right;
     }
 
     .edit-bar {
@@ -66,6 +85,12 @@
 
     .edit-bar.active {
       right: 0;
+    }
+
+    .transaction-arrow {
+      cursor: pointer;
+      font-size: 20px;
+      color: #007bff;
     }
   </style>
 </head>
@@ -141,7 +166,7 @@
 
       <hr>
 
-      <div id="transactionList">
+      <div id="transactionList" class="transaction-list">
         <!-- Transactions will be dynamically added here -->
       </div>
     </div>
@@ -289,7 +314,21 @@
   const addTransactionToList = (transaction) => {
     const div = document.createElement('div');
     div.className = 'transaction-box';
-    div.innerHTML = `<strong>${transaction.name}</strong> - ${transaction.type} - $${transaction.amount}`;
+
+    const transactionTypeClass = transaction.type === "Client Gives" ? 'transaction-left' : 'transaction-right';
+    div.classList.add(transactionTypeClass);
+
+    div.innerHTML = `
+      <strong>${transaction.name}</strong> - ${transaction.type} - $${transaction.amount}
+      <span class="transaction-arrow">↕️</span>
+    `;
+
+    // Adding drag-and-drop functionality
+    div.setAttribute('draggable', true);
+    div.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', transaction.id);
+    });
+
     transactionList.appendChild(div);
   };
 </script>
