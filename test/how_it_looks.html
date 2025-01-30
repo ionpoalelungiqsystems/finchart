@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Deal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f4f6;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+    }
+    .deal-option {
+      margin-top: 20px;
+    }
+    .multi-option {
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="card-body">
+      <h3>Manage Deal</h3>
+      <div id="dealDetails">
+        <p>Loading...</p>
+      </div>
+      <div class="deal-option">
+        <h4>Deal Type</h4>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="dealType" id="simpleDeal" value="simple">
+          <label class="form-check-label" for="simpleDeal">
+            Simple Deal
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="dealType" id="multiOptionDeal" value="multi">
+          <label class="form-check-label" for="multiOptionDeal">
+            Multi-Option Deal
+          </label>
+        </div>
+      </div>
+
+      <!-- Simple Deal Management -->
+      <div id="simpleDealSection" class="deal-option">
+        <h5>Manage Simple Deal</h5>
+        <p>Update the details of this simple deal.</p>
+        <button id="updateSimpleDealBtn" class="btn btn-primary">Update Deal</button>
+      </div>
+
+      <!-- Multi-Option Deal Management -->
+      <div id="multiOptionDealSection" class="multi-option">
+        <h5>Manage Multi-Option Deal</h5>
+        <p>Manage each option for this multi-option deal.</p>
+        <button id="addOptionBtn" class="btn btn-primary">Add Option</button>
+        <ul id="optionsList" class="list-group mt-3"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE_URL = 'http://127.0.0.1:8000';
+  let currentDealId = new URLSearchParams(window.location.search).get('dealId');
+  let currentDealData = null;
+
+  if (!currentDealId) {
+    alert('No deal ID provided.');
+    window.location.href = 'index.html'; // Redirect to the main page
+  }
+
+  // Fetch deal details from the API
+  async function fetchDealDetails() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/deals/${currentDealId}`);
+      currentDealData = await response.json();
+
+      if (currentDealData) {
+        document.getElementById('dealDetails').innerHTML = `<p>Deal Name: ${currentDealData.name}</p>`;
+
+        // Show deal type
+        if (currentDealData.type === 'multi') {
+          document.getElementById('multiOptionDeal').checked = true;
+          document.getElementById('multiOptionDealSection').style.display = 'block';
+          displayDealOptions();
+        } else {
+          document.getElementById('simpleDeal').checked = true;
+          document.getElementById('simpleDealSection').style.display = 'block';
+        }
+      } else {
+        alert('Deal not found');
+      }
+    } catch (error) {
+      alert('Error fetching deal details');
+    }
+  }
+
+  // Display deal options for multi-option deals
+  function displayDealOptions() {
+    const optionsList = document.getElementById('optionsList');
+    optionsList.innerHTML = '';
+    currentDealData.options.forEach((option, index) => {
+      const li = document.createElement('li');
+      li.className = 'list-group-item';
+      li.textContent = option.name;
+      optionsList.appendChild(li);
+    });
+  }
+
+  // Event listeners for radio buttons
+  document.getElementById('simpleDeal').addEventListener('change', () => {
+    document.getElementById('simpleDealSection').style.display = 'block';
+    document.getElementById('multiOptionDealSection').style.display = 'none';
+  });
+
+  document.getElementById('multiOptionDeal').addEventListener('change', () => {
+    document.getElementById('multiOptionDealSection').style.display = 'block';
+    document.getElementById('simpleDealSection').style.display = 'none';
+  });
+
+  // Add option to multi-option deal
+  document.getElementById('addOptionBtn').addEventListener('click', () => {
+    const newOption = prompt('Enter option name');
+    if (newOption) {
+      // Update deal options in the database
+      currentDealData.options.push({ name: newOption });
+      displayDealOptions();
+    }
+  });
+
+  // Update simple deal (you can add your form update logic here)
+  document.getElementById('updateSimpleDealBtn').addEventListener('click', async () => {
+    const updatedName = prompt('Enter new deal name', currentDealData.name);
+    if (updatedName) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/deals/${currentDealId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: updatedName }),
+        });
+        const updatedDeal = await response.json();
+        alert('Deal updated successfully');
+        window.location.reload();
+      } catch (error) {
+        alert('Error updating deal');
+      }
+    }
+  });
+
+  // Initialize page
+  fetchDealDetails();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

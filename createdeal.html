@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create a Deal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f4f6;
+      font-family: Arial, sans-serif;
+      display: flex;
+      margin: 0;
+    }
+    .navbar {
+      width: 250px;
+      height: 100vh;
+      background-color: #ffffff;
+      border-right: 1px solid #ddd;
+      padding: 20px;
+      position: fixed;
+      display: flex;
+      flex-direction: column;
+    }
+    .navbar a {
+      text-decoration: none;
+      color: #000;
+      padding: 10px 15px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      transition: background-color 0.2s;
+    }
+    .navbar a.active, .navbar a:hover {
+      background-color: #e9ecef;
+    }
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+      width: calc(100% - 250px);
+    }
+  </style>
+</head>
+<body>
+<div class="navbar">
+  <a href="create-deal.html" class="active">Create Deal</a>
+  <a href="index.html">Manage Transactions</a>
+</div>
+<div class="content">
+  <div id="alertContainer"></div>
+  <div class="card mb-4">
+    <div class="card-body">
+      <h3>Create a Deal</h3>
+      <form id="createDealForm">
+        <div class="mb-3">
+          <label for="dealName" class="form-label">Deal Name</label>
+          <input type="text" class="form-control" id="dealName" placeholder="Enter deal name" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Deal</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE_URL = 'http://127.0.0.1:8000';
+  let currentDealId = new URLSearchParams(window.location.search).get('dealId');
+  let selectedTransactionType = null;
+  const addTransactionForm = document.getElementById('addTransactionForm');
+  const transactionList = document.getElementById('transactionList');
+  const alertContainer = document.getElementById('alertContainer');
+
+  // Make sure there's a valid dealId
+  if (!currentDealId) {
+    alert('No deal ID provided! Please create a deal first.');
+    window.location.href = 'create-deal.html'; // Redirect to deal creation if no dealId
+  }
+
+  document.getElementById('createClientGives').addEventListener('click', () => {
+    selectedTransactionType = 'Client Gives';
+    addTransactionForm.style.display = 'block';
+  });
+
+  document.getElementById('createClientReceives').addEventListener('click', () => {
+    selectedTransactionType = 'Client Receives';
+    addTransactionForm.style.display = 'block';
+  });
+
+  addTransactionForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const transactionAmount = document.getElementById('transactionAmount').value;
+    const currencyType = document.getElementById('currencyType').value;
+
+    // Check if all fields are filled
+    if (!transactionAmount || !currencyType || !selectedTransactionType) {
+      showAlert('All fields are required!', 'danger');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/transactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deal_id: currentDealId, // Ensure we are linking the transaction to the correct deal
+          name: `${selectedTransactionType} Transaction`,
+          type: selectedTransactionType,
+          amount: transactionAmount,
+          currency: currencyType,
+        }),
+      });
+
+      const transaction = await response.json();
+      if (response.ok) {
+        addTransactionToList(transaction);
+        showAlert('Transaction added successfully!', 'success');
+        addTransactionForm.style.display = 'none';
+      } else {
+        throw new Error(transaction.error || 'Failed to add transaction');
+      }
+    } catch (error) {
+      showAlert(error.message);
+    }
+  });
+
+  function showAlert(message, type = 'danger') {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    alertContainer.appendChild(alert);
+    setTimeout(() => alert.remove(), 5000);
+  }
+
+  function addTransactionToList(transaction) {
+    const transactionCard = document.createElement('div');
+    transactionCard.classList.add('compact-transaction-card');
+    transactionCard.setAttribute('draggable', 'true');
+    transactionCard.dataset.transactionId = transaction.id;
+
+    const statusIndicator = document.createElement('div');
+    statusIndicator.classList.add(
+      'compact-status-indicator',
+      transaction.type === 'Client Gives' ? 'success' : 'danger'
+    );
+
+    const transactionDetails = document.createElement('div');
+    transactionDetails.classList.add('compact-transaction-details');
+    transactionDetails.innerHTML = `
+      <div class="compact-title">${transaction.name || 'Unnamed Transaction'}</div>
+      <div class="compact-transaction-info">${transaction.type}</div>
+      <div class="compact-badge">${transaction.amount} ${transaction.currency}</div>
+    `;
+
+    transactionCard.appendChild(statusIndicator);
+    transactionCard.appendChild(transactionDetails);
+    transactionList.appendChild(transactionCard);
+  }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

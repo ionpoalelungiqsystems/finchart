@@ -1,0 +1,235 @@
+.exchange-wrapper {
+  border-radius: 16px;
+  background: #fff;
+  min-width: 240px;
+  width: 336px;
+  padding: 16px 24px;
+  border: 1px solid var(--border-action-normal, #dee0e3);
+}
+
+.exchange-header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 16px;
+}
+
+.order-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-base-primary, #14151a);
+  font: 600 14px/20px var(--typography-family-inter, Inter);
+  letter-spacing: -0.1px;
+}
+
+.order-number {
+  border-radius: 999px;
+  background: #fff;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border-action-normal, #dee0e3);
+}
+
+.exchange-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.status-indicator {
+  transform: rotate(-90deg);
+  flex: 1;
+  padding: 6px 0;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copy-btn,
+.menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--background-button-secondary, #fff);
+  border: 1px solid var(--border-action-normal, #dee0e3);
+  box-shadow: 0 1px 2px rgba(20,21,26,0.05);
+  padding: 6px 10px;
+}
+
+.menu-btn {
+  width: 32px;
+  height: 32px;
+  padding: 8px;
+}
+
+.exchange-title {
+  color: #14151a;
+  font: 600 18px/1 Inter, sans-serif;
+  letter-spacing: -0.2px;
+  margin-top: 8px;
+}
+
+.transaction-content {
+  margin-top: 8px;
+  width: 100%;
+  flex: 1;
+}
+
+.transaction-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.transaction-id {
+  color: var(--text-base-tertiary, rgba(13,17,38,0.4));
+  font: 400 14px/20px Inter;
+  letter-spacing: -0.1px;
+  width: 72px;
+}
+
+.status-progress {
+  position: relative;
+  flex: 1;
+}
+
+.status-track {
+  position: absolute;
+  display: flex;
+  width: 100%;
+  max-width: 200px;
+  min-height: 20px;
+}
+
+.status-badges {
+  display: flex;
+  gap: 4px;
+  padding-left: 8px;
+  max-width: 376px;
+  overflow-x: auto;
+}
+
+.status-badge {
+  border-radius: 6px;
+  padding: 2px 6px;
+  font: 500 12px/16px Inter;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.status-badge.active {
+  background: #e3eafd;
+  color: #133a9a;
+}
+
+.status-badge.inactive {
+  background: #e9eaec;
+  color: rgba(10,15,41,0.25);
+}
+
+.action-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  background: var(--background-button-primary, #14151a);
+  color: #fff;
+  font: 500 14px/1 Inter;
+  letter-spacing: -0.1px;
+  padding: 10px 12px;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.transaction-form {
+  margin-top: 24px;
+  padding-bottom: 32px;
+}
+
+.form-section {
+  border-radius: 10px;
+  border: 1px solid rgba(10,15,41,0.08);
+  background: var(--background-surface-neutral, #f7f7f8);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-label {
+  width: 112px;
+  font: 500 14px/1 Inter;
+  color: #14151a;
+}
+
+.form-required {
+  color: #e6483d;
+}
+
+.form-select,
+.form-input {
+  flex: 1;
+  max-width: 400px;
+  border-radius: 10px;
+  border: 1px solid #dee0e3;
+  background: #fff;
+  padding: 6px 12px;
+  font: 400 14px/1 Inter;
+  color: rgba(13,17,38,0.4);
+}
+
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%2314151A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.accordion-section {
+  margin-top: 8px;
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(10,15,41,0.08);
+  background: #fff;
+  font: 500 14px/20px Inter;
+  color: #14151a;
+  cursor: pointer;
+}
+
+@media (max-width: 991px) {
+  .exchange-wrapper {
+    padding: 0 20px;
+  }
+
+  .status-badge {
+    white-space: normal;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}

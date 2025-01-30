@@ -2,700 +2,388 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Title</title>
+  <link href="favicon.webp" rel="icon">
+  <link href="favicon.webp" rel="apple-touch-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deal Timeline Manager</title>
+  <style>
+    :root {
+      --primary-blue: #0066FF;
+      --light-gray: #F5F5F5;
+      --border-color: #E5E7EB;
+      --success-green: #10B981;
+      --primary-purple: #B78AF0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--light-gray);
+    }
+
+    .sidebar {
+      position: fixed;
+      width: 250px;
+      height: 100vh;
+      background: white;
+      padding: 20px;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .main-content {
+      margin-left: 250px;
+      padding: 20px;
+    }
+
+    .header {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .deal-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      background: var(--primary-blue);
+      color: white;
+      font-size: 14px;
+    }
+
+    .timeline-container {
+      position: relative;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .column-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .add-button {
+      padding: 5px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: 1fr 60px 1fr;
+      gap: 0;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: calc(50% - 1px);
+      top: 0;
+      height: 100%;
+      width: 2px;
+      background: var(--border-color);
+      z-index: 1;
+    }
+
+    .connector {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .connector::after {
+      content: 'FC';
+      width: 30px;
+      height: 30px;
+      background: white;
+      border: 2px solid var(--border-color);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      z-index: 2;
+    }
+
+    .transaction-card {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px;
+      position: relative;
+      cursor: move;
+    }
+
+    .transaction-card::before {
+      content: '';
+      position: absolute;
+      left: -4px;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background: var(--success-green);
+      border-radius: 4px 0 0 4px;
+    }
+
+    .transaction-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .transaction-title {
+      font-weight: 500;
+      color: #111827;
+    }
+
+    .transaction-status {
+      font-size: 12px;
+      color: var(--success-green);
+    }
+
+    .transaction-id {
+      font-size: 12px;
+      color: #6B7280;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .action-button {
+      padding: 4px 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .placeholder {
+      border: 2px dashed #ccc;
+      background: #f9f9f9;
+      height: 100px;
+      margin: 10px;
+      border-radius: 8px;
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      background: #E5E7EB;
+      color: #374151;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    .badge.new {
+      background: #EEF2FF;
+      color: #4F46E5;
+    }
+
+    .timeline-number {
+      position: absolute;
+      right: -25px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      background: #E5E7EB;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #374151;
+      z-index: 3;
+    }
+
+  </style>
 </head>
 <body>
-<div data-layer="Timeline" class="Timeline" style="width: 608px; height: 736px; padding-bottom: 32px; flex-direction: column; justify-content: flex-start; align-items: center; gap: 16px; display: inline-flex">
-  <div data-layer="Transaction Block" class="TransactionBlock" style="align-self: stretch; justify-content: flex-start; align-items: flex-start; gap: 16px; display: inline-flex">
-    <div data-layer="Transaction block" class="TransactionBlock" style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
-      <div data-layer="Transaction block/Deal structure - base" class="TransactionBlockDealStructureBase" style="align-self: stretch; height: 128px; box-shadow: 0px 8px 8px -5px rgba(20, 21, 26, 0.05); flex-direction: column; justify-content: flex-start; align-items: flex-start; display: flex">
-        <div data-layer="Exchange item / Deal structure" class="ExchangeItemDealStructure" style="align-self: stretch; height: 128px; padding-top: 16px; padding-bottom: 16px; padding-left: 16px; padding-right: 32px; background: white; border-radius: 16px; border: 2px #0B0C0E solid; flex-direction: column; justify-content: flex-start; align-items: center; gap: 24px; display: flex">
-          <div data-layer="Content" class="Content" style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-            <div data-layer="Frame" class="Frame" style="width: 6px; align-self: stretch; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-              <div data-layer="Indicator" class="Indicator" style="flex: 1 1 0; align-self: stretch; padding-top: 6px; padding-bottom: 6px; justify-content: center; align-items: center; gap: 8px; display: flex">
-                <div data-layer="Indicator" class="Indicator" style="width: 6px; align-self: stretch; background: #B78AF0; border-radius: 15px"></div>
-              </div>
-            </div>
-            <div data-layer="Frame" class="Frame" style="flex: 1 1 0; height: 96px; justify-content: flex-start; align-items: center; gap: 16px; display: flex">
-              <div data-layer="Details" class="Details" style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
-                <div data-layer="Title" class="Title" style="align-self: stretch; justify-content: space-between; align-items: center; display: inline-flex">
-                  <div data-layer="Container" class="Container" style="flex: 1 1 0; height: 24px; justify-content: flex-start; align-items: center; gap: 8px; display: flex">
-                    <div data-layer="Title Text" class="TitleText" style="flex: 1 1 0; color: #14151A; font-size: 16px; font-family: Inter; font-weight: 600; line-height: 24px; word-wrap: break-word">Cryptocurrency</div>
-                  </div>
-                </div>
-                <div data-layer="Container" class="Container" style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 16px; display: inline-flex">
-                  <div data-layer="Title Text" class="TitleText" style="color: rgba(13, 17, 38, 0.40); font-size: 14px; font-family: Inter; font-weight: 400; line-height: 20px; word-wrap: break-word">TRNS - 01</div>
-                  <div data-layer="Transaction status / Cryptocurrency" class="TransactionStatusCryptocurrency" style="justify-content: flex-start; align-items: flex-start; display: flex">
-                    <div data-layer="Status states" class="StatusStates" style="justify-content: flex-start; align-items: flex-start; display: flex">
-                      <div data-layer="Frame" class="Frame" style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: inline-flex">
-                        <div data-layer="Badge" class="Badge" style="align-self: stretch; padding-left: 3px; padding-right: 3px; padding-top: 2px; padding-bottom: 2px; background: #E3EAFD; border-radius: 6px; justify-content: center; align-items: center; display: inline-flex">
-                          <div data-layer="Label" class="Label" style="padding-left: 3px; padding-right: 3px; justify-content: center; align-items: center; display: flex">
-                            <div data-layer="Label" class="Label" style="text-align: center; color: #133A9A; font-size: 12px; font-family: Inter; font-weight: 500; line-height: 16px; word-wrap: break-word">New</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div data-layer="Actions" class="Actions" style="flex: 1 1 0; height: 32px; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-                <div data-layer="Frame" class="Frame" style="justify-content: flex-start; align-items: center; gap: 4px; display: flex">
-                  <div data-layer="Button" class="Button" style="padding: 8px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="lead-icon" class="LeadIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 12px; height: 13.33px; left: 2px; top: 1.33px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                  <div data-layer="Button" class="Button" style="padding: 8px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="lead-icon" class="LeadIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 13.33px; height: 13.33px; left: 1.33px; top: 1.33px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                </div>
-                <div data-layer="Button" class="Button" style="height: 32px; justify-content: flex-start; align-items: flex-start; display: flex">
-                  <div data-layer="Button" class="Button" style="flex: 1 1 0; height: 32px; padding-left: 10px; padding-right: 10px; padding-top: 6px; padding-bottom: 6px; background: rgba(10, 15, 41, 0.04); border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="Text" class="Text" style="padding-left: 4px; padding-right: 4px; justify-content: center; align-items: center; display: flex">
-                      <div data-layer="Label" class="Label" style="text-align: center; color: #14151A; font-size: 14px; font-family: Inter; font-weight: 500; line-height: 20px; word-wrap: break-word">Hide details</div>
-                    </div>
-                    <div data-layer="tail-icon" class="TailIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 8.01px; height: 8.01px; left: 4px; top: 3.99px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div data-layer="Order button" class="OrderButton" style="height: 56px; padding-top: 8px; padding-bottom: 8px; background: white; box-shadow: 0px 2px 4px -1px rgba(20, 21, 26, 0.06); border-radius: 999px; border: 2px #0B0C0E solid; flex-direction: column; justify-content: flex-start; align-items: center; display: flex">
-            <div data-layer="Initials" class="Initials" style="align-self: stretch; text-align: center; color: #14151A; font-size: 16px; font-family: Inter; font-weight: 600; line-height: 24px; word-wrap: break-word">1</div>
-            <div data-layer="reorder-line" class="ReorderLine" style="width: 16px; height: 16px; position: relative">
-              <div data-layer="Vector" class="Vector" style="width: 12px; height: 8px; left: 2px; top: 4px; position: absolute; background: rgba(13, 17, 38, 0.40)"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="sidebar">
+  <div class="logo">FinCraft</div>
+  <!-- Sidebar content -->
+</div>
+
+<div class="main-content">
+  <div class="header">
+    <div class="deal-info">
+      <h2>DEAL - 01</h2>
+      <span class="status-badge">In progress</span>
+      <span>Davis_Berg</span>
     </div>
-    <div data-layer="Spacer" class="Spacer" style="width: 48px; align-self: stretch; padding-top: 1px; padding-bottom: 1px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: inline-flex">
-      <div data-layer="Mask" class="Mask" style="width: 48px; height: 128px; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 40%, black 60%, rgba(0, 0, 0, 0) 100%)"></div>
-      <div data-layer="Lines" class="Lines" style="align-self: stretch; height: 126px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-      </div>
-    </div>
-    <div data-layer="Transaction block" class="TransactionBlock" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
-      <div data-layer="Spacer" class="Spacer" style="align-self: stretch; flex: 1 1 0; padding: 24px; background: #DEE0E3; border-radius: 16px"></div>
+    <div class="actions">
+      <button class="add-button">Version 1.1</button>
+      <button class="add-button">Actions</button>
     </div>
   </div>
-  <div data-layer="Transaction Block" class="TransactionBlock" style="align-self: stretch; justify-content: flex-start; align-items: flex-start; gap: 16px; display: inline-flex">
-    <div data-layer="Transaction block" class="TransactionBlock" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
-      <div data-layer="Spacer" class="Spacer" style="align-self: stretch; flex: 1 1 0; padding: 24px; background: #DEE0E3; border-radius: 16px"></div>
-    </div>
-    <div data-layer="Spacer" class="Spacer" style="width: 48px; align-self: stretch; padding-top: 1px; padding-bottom: 1px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: inline-flex">
-      <div data-layer="Mask" class="Mask" style="width: 48px; height: 128px; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 40%, black 60%, rgba(0, 0, 0, 0) 100%)"></div>
-      <div data-layer="Lines" class="Lines" style="align-self: stretch; height: 126px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
+
+  <div class="timeline-container">
+    <div class="timeline-header">
+      <div class="column-title">
+        <h3>Client gives</h3>
+        <button class="add-button" onclick="addTransaction('gives')">+ Add</button>
+      </div>
+      <div class="column-title">
+        <h3>Client receives</h3>
+        <button class="add-button" onclick="addTransaction('receives')">+ Add</button>
       </div>
     </div>
-    <div data-layer="Transaction block" class="TransactionBlock" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
-      <div data-layer="Transaction block/Deal structure - base" class="TransactionBlockDealStructureBase" style="align-self: stretch; height: 128px; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: flex">
-        <div data-layer="Exchange item / Deal structure" class="ExchangeItemDealStructure" style="align-self: stretch; height: 128px; padding-top: 16px; padding-bottom: 16px; padding-left: 24px; padding-right: 32px; background: #F7F7F8; border-radius: 16px; flex-direction: column; justify-content: flex-start; align-items: center; gap: 24px; display: flex">
-          <div data-layer="Content" class="Content" style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-            <div data-layer="Frame" class="Frame" style="width: 6px; align-self: stretch; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-              <div data-layer="Indicator" class="Indicator" style="flex: 1 1 0; align-self: stretch; padding-top: 4px; padding-bottom: 4px; justify-content: center; align-items: center; gap: 8px; display: flex">
-                <div data-layer="Indicator" class="Indicator" style="width: 6px; height: 12px; background: #B78AF0; border-radius: 15px"></div>
-              </div>
-            </div>
-            <div data-layer="Frame" class="Frame" style="flex: 1 1 0; height: 96px; justify-content: flex-start; align-items: center; gap: 16px; display: flex">
-              <div data-layer="Details" class="Details" style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
-                <div data-layer="Title" class="Title" style="align-self: stretch; justify-content: space-between; align-items: center; display: inline-flex">
-                  <div data-layer="Container" class="Container" style="flex: 1 1 0; height: 24px; justify-content: flex-start; align-items: center; gap: 8px; display: flex">
-                    <div data-layer="Title Text" class="TitleText" style="flex: 1 1 0; color: #14151A; font-size: 16px; font-family: Inter; font-weight: 600; line-height: 24px; word-wrap: break-word">Cryptocurrency</div>
-                  </div>
-                </div>
-                <div data-layer="Container" class="Container" style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 16px; display: inline-flex">
-                  <div data-layer="Title Text" class="TitleText" style="color: rgba(13, 17, 38, 0.40); font-size: 14px; font-family: Inter; font-weight: 400; line-height: 20px; word-wrap: break-word">TRNS - 02</div>
-                  <div data-layer="Transaction status / Cryptocurrency" class="TransactionStatusCryptocurrency" style="justify-content: flex-start; align-items: flex-start; display: flex">
-                    <div data-layer="Status states" class="StatusStates" style="justify-content: flex-start; align-items: flex-start; display: flex">
-                      <div data-layer="Frame" class="Frame" style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: inline-flex">
-                        <div data-layer="Badge" class="Badge" style="align-self: stretch; padding-left: 3px; padding-right: 3px; padding-top: 2px; padding-bottom: 2px; background: #E3EAFD; border-radius: 6px; justify-content: center; align-items: center; display: inline-flex">
-                          <div data-layer="Label" class="Label" style="padding-left: 3px; padding-right: 3px; justify-content: center; align-items: center; display: flex">
-                            <div data-layer="Label" class="Label" style="text-align: center; color: #133A9A; font-size: 12px; font-family: Inter; font-weight: 500; line-height: 16px; word-wrap: break-word">New</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div data-layer="Actions" class="Actions" style="flex: 1 1 0; height: 32px; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-                <div data-layer="Frame" class="Frame" style="justify-content: flex-start; align-items: center; gap: 4px; display: flex">
-                  <div data-layer="Button" class="Button" style="padding: 8px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="lead-icon" class="LeadIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 12px; height: 13.33px; left: 2px; top: 1.33px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                  <div data-layer="Button" class="Button" style="padding: 8px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="lead-icon" class="LeadIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 13.33px; height: 13.33px; left: 1.33px; top: 1.33px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                </div>
-                <div data-layer="Button" class="Button" style="height: 32px; justify-content: flex-start; align-items: flex-start; display: flex">
-                  <div data-layer="Button" class="Button" style="padding-left: 10px; padding-right: 10px; padding-top: 6px; padding-bottom: 6px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="Text" class="Text" style="padding-left: 4px; padding-right: 4px; justify-content: center; align-items: center; display: flex">
-                      <div data-layer="Label" class="Label" style="text-align: center; color: #14151A; font-size: 14px; font-family: Inter; font-weight: 500; line-height: 20px; word-wrap: break-word">Show details</div>
-                    </div>
-                    <div data-layer="tail-icon" class="TailIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 8.01px; height: 8.01px; left: 3.99px; top: 4px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div data-layer="Order button" class="OrderButton" style="height: 56px; padding-top: 8px; padding-bottom: 8px; background: white; box-shadow: 0px 2px 4px -1px rgba(20, 21, 26, 0.06); border-radius: 999px; border: 1px #DEE0E3 solid; flex-direction: column; justify-content: flex-start; align-items: center; display: flex">
-            <div data-layer="Initials" class="Initials" style="align-self: stretch; text-align: center; color: #14151A; font-size: 16px; font-family: Inter; font-weight: 600; line-height: 24px; word-wrap: break-word">2</div>
-            <div data-layer="reorder-line" class="ReorderLine" style="width: 16px; height: 16px; position: relative">
-              <div data-layer="Vector" class="Vector" style="width: 12px; height: 8px; left: 2px; top: 4px; position: absolute; background: rgba(13, 17, 38, 0.40)"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div data-layer="Transaction Block" class="TransactionBlock" style="align-self: stretch; justify-content: flex-start; align-items: flex-start; gap: 16px; display: inline-flex">
-    <div data-layer="Transaction block" class="TransactionBlock" style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
-      <div data-layer="Transaction block/Deal structure - base" class="TransactionBlockDealStructureBase" style="align-self: stretch; height: 128px; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: flex">
-        <div data-layer="Exchange item / Deal structure" class="ExchangeItemDealStructure" style="align-self: stretch; height: 128px; padding-top: 16px; padding-bottom: 16px; padding-left: 16px; padding-right: 32px; background: #F7F7F8; border-radius: 16px; flex-direction: column; justify-content: flex-start; align-items: center; gap: 24px; display: flex">
-          <div data-layer="Content" class="Content" style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-            <div data-layer="Frame" class="Frame" style="width: 6px; align-self: stretch; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-              <div data-layer="Indicator" class="Indicator" style="flex: 1 1 0; align-self: stretch; justify-content: center; align-items: center; gap: 8px; display: flex">
-                <div data-layer="Indicator" class="Indicator" style="width: 6px; height: 13.33px; background: #6AE1A1; border-radius: 15px"></div>
-              </div>
-            </div>
-            <div data-layer="Frame" class="Frame" style="flex: 1 1 0; height: 96px; justify-content: flex-start; align-items: center; gap: 16px; display: flex">
-              <div data-layer="Details" class="Details" style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
-                <div data-layer="Title" class="Title" style="align-self: stretch; justify-content: space-between; align-items: center; display: inline-flex">
-                  <div data-layer="Container" class="Container" style="flex: 1 1 0; height: 24px; justify-content: flex-start; align-items: center; gap: 8px; display: flex">
-                    <div data-layer="Title Text" class="TitleText" style="flex: 1 1 0; color: #14151A; font-size: 16px; font-family: Inter; font-weight: 600; line-height: 24px; word-wrap: break-word">Cash (World)</div>
-                  </div>
-                </div>
-                <div data-layer="Container" class="Container" style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 16px; display: inline-flex">
-                  <div data-layer="Title Text" class="TitleText" style="color: rgba(13, 17, 38, 0.40); font-size: 14px; font-family: Inter; font-weight: 400; line-height: 20px; word-wrap: break-word">TRNS - 01</div>
-                  <div data-layer="Transaction status / Cash (World)" class="TransactionStatusCashWorld" style="justify-content: flex-start; align-items: flex-start; display: flex">
-                    <div data-layer="Status states" class="StatusStates" style="justify-content: flex-start; align-items: flex-start; display: flex">
-                      <div data-layer="Frame" class="Frame" style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: inline-flex">
-                        <div data-layer="Badge" class="Badge" style="align-self: stretch; padding-left: 3px; padding-right: 3px; padding-top: 2px; padding-bottom: 2px; background: #E3EAFD; border-radius: 6px; justify-content: center; align-items: center; display: inline-flex">
-                          <div data-layer="Label" class="Label" style="padding-left: 3px; padding-right: 3px; justify-content: center; align-items: center; display: flex">
-                            <div data-layer="Label" class="Label" style="text-align: center; color: #133A9A; font-size: 12px; font-family: Inter; font-weight: 500; line-height: 16px; word-wrap: break-word">New</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div data-layer="Actions" class="Actions" style="flex: 1 1 0; height: 32px; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-                <div data-layer="Frame" class="Frame" style="justify-content: flex-start; align-items: center; gap: 4px; display: flex">
-                  <div data-layer="Button" class="Button" style="padding: 8px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="lead-icon" class="LeadIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 12px; height: 13.33px; left: 2px; top: 1.33px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                  <div data-layer="Button" class="Button" style="padding: 8px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="lead-icon" class="LeadIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 13.33px; height: 13.33px; left: 1.33px; top: 1.33px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                </div>
-                <div data-layer="Button" class="Button" style="height: 32px; justify-content: flex-start; align-items: flex-start; display: flex">
-                  <div data-layer="Button" class="Button" style="padding-left: 10px; padding-right: 10px; padding-top: 6px; padding-bottom: 6px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="Text" class="Text" style="padding-left: 4px; padding-right: 4px; justify-content: center; align-items: center; display: flex">
-                      <div data-layer="Label" class="Label" style="text-align: center; color: #14151A; font-size: 14px; font-family: Inter; font-weight: 500; line-height: 20px; word-wrap: break-word">Show details</div>
-                    </div>
-                    <div data-layer="tail-icon" class="TailIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 8.01px; height: 8.01px; left: 3.99px; top: 4px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div data-layer="Order button" class="OrderButton" style="height: 56px; padding-top: 8px; padding-bottom: 8px; background: #F7F7F8; box-shadow: 0px 2px 4px -1px rgba(20, 21, 26, 0.06); border-radius: 999px; border: 1px #DEE0E3 solid; flex-direction: column; justify-content: flex-start; align-items: center; display: flex">
-            <div data-layer="Initials" class="Initials" style="align-self: stretch; text-align: center; color: #14151A; font-size: 16px; font-family: Inter; font-weight: 600; line-height: 24px; word-wrap: break-word">3</div>
-            <div data-layer="reorder-line" class="ReorderLine" style="width: 16px; height: 16px; position: relative">
-              <div data-layer="Vector" class="Vector" style="width: 12px; height: 8px; left: 2px; top: 4px; position: absolute; background: rgba(13, 17, 38, 0.40)"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div data-layer="Spacer" class="Spacer" style="width: 48px; align-self: stretch; padding-top: 1px; padding-bottom: 1px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: inline-flex">
-      <div data-layer="Mask" class="Mask" style="width: 48px; height: 128px; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 40%, black 60%, rgba(0, 0, 0, 0) 100%)"></div>
-      <div data-layer="Lines" class="Lines" style="align-self: stretch; height: 126px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-      </div>
-    </div>
-    <div data-layer="Transaction block" class="TransactionBlock" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
-      <div data-layer="Spacer" class="Spacer" style="align-self: stretch; flex: 1 1 0; padding: 24px; background: #DEE0E3; border-radius: 16px"></div>
-    </div>
-  </div>
-  <div data-layer="Transaction Block" class="TransactionBlock" style="align-self: stretch; justify-content: flex-start; align-items: flex-start; gap: 16px; display: inline-flex">
-    <div data-layer="Transaction block" class="TransactionBlock" style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
-      <div data-layer="Transaction block/Deal structure - base" class="TransactionBlockDealStructureBase" style="align-self: stretch; height: 128px; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: flex">
-        <div data-layer="Exchange item / Deal structure" class="ExchangeItemDealStructure" style="align-self: stretch; height: 128px; padding-top: 16px; padding-bottom: 16px; padding-left: 16px; padding-right: 32px; background: #F7F7F8; border-radius: 16px; flex-direction: column; justify-content: flex-start; align-items: center; gap: 24px; display: flex">
-          <div data-layer="Content" class="Content" style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-            <div data-layer="Frame" class="Frame" style="width: 6px; align-self: stretch; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-              <div data-layer="Indicator" class="Indicator" style="flex: 1 1 0; align-self: stretch; justify-content: center; align-items: center; gap: 8px; display: flex">
-                <div data-layer="Indicator" class="Indicator" style="width: 6px; height: 13.33px; background: #6AE1A1; border-radius: 15px"></div>
-              </div>
-            </div>
-            <div data-layer="Frame" class="Frame" style="flex: 1 1 0; height: 96px; justify-content: flex-start; align-items: center; gap: 16px; display: flex">
-              <div data-layer="Details" class="Details" style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
-                <div data-layer="Title" class="Title" style="align-self: stretch; justify-content: space-between; align-items: center; display: inline-flex">
-                  <div data-layer="Container" class="Container" style="flex: 1 1 0; height: 24px; justify-content: flex-start; align-items: center; gap: 8px; display: flex">
-                    <div data-layer="Title Text" class="TitleText" style="flex: 1 1 0; color: #14151A; font-size: 16px; font-family: Inter; font-weight: 600; line-height: 24px; word-wrap: break-word">Cash (World)</div>
-                  </div>
-                </div>
-                <div data-layer="Container" class="Container" style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 16px; display: inline-flex">
-                  <div data-layer="Title Text" class="TitleText" style="color: rgba(13, 17, 38, 0.40); font-size: 14px; font-family: Inter; font-weight: 400; line-height: 20px; word-wrap: break-word">TRNS - 01</div>
-                  <div data-layer="Transaction status / Cash (World)" class="TransactionStatusCashWorld" style="justify-content: flex-start; align-items: flex-start; display: flex">
-                    <div data-layer="Status states" class="StatusStates" style="justify-content: flex-start; align-items: flex-start; display: flex">
-                      <div data-layer="Frame" class="Frame" style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: inline-flex">
-                        <div data-layer="Badge" class="Badge" style="align-self: stretch; padding-left: 3px; padding-right: 3px; padding-top: 2px; padding-bottom: 2px; background: #E3EAFD; border-radius: 6px; justify-content: center; align-items: center; display: inline-flex">
-                          <div data-layer="Label" class="Label" style="padding-left: 3px; padding-right: 3px; justify-content: center; align-items: center; display: flex">
-                            <div data-layer="Label" class="Label" style="text-align: center; color: #133A9A; font-size: 12px; font-family: Inter; font-weight: 500; line-height: 16px; word-wrap: break-word">New</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div data-layer="Actions" class="Actions" style="flex: 1 1 0; height: 32px; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-                <div data-layer="Frame" class="Frame" style="justify-content: flex-start; align-items: center; gap: 4px; display: flex">
-                  <div data-layer="Button" class="Button" style="padding: 8px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="lead-icon" class="LeadIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 12px; height: 13.33px; left: 2px; top: 1.33px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                  <div data-layer="Button" class="Button" style="padding: 8px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="lead-icon" class="LeadIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 13.33px; height: 13.33px; left: 1.33px; top: 1.33px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                </div>
-                <div data-layer="Button" class="Button" style="height: 32px; justify-content: flex-start; align-items: flex-start; display: flex">
-                  <div data-layer="Button" class="Button" style="padding-left: 10px; padding-right: 10px; padding-top: 6px; padding-bottom: 6px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="Text" class="Text" style="padding-left: 4px; padding-right: 4px; justify-content: center; align-items: center; display: flex">
-                      <div data-layer="Label" class="Label" style="text-align: center; color: #14151A; font-size: 14px; font-family: Inter; font-weight: 500; line-height: 20px; word-wrap: break-word">Show details</div>
-                    </div>
-                    <div data-layer="tail-icon" class="TailIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 8.01px; height: 8.01px; left: 3.99px; top: 4px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div data-layer="Order button" class="OrderButton" style="height: 56px; padding-top: 8px; padding-bottom: 8px; background: #F7F7F8; box-shadow: 0px 2px 4px -1px rgba(20, 21, 26, 0.06); border-radius: 999px; border: 1px #DEE0E3 solid; flex-direction: column; justify-content: flex-start; align-items: center; display: flex">
-            <div data-layer="Initials" class="Initials" style="align-self: stretch; text-align: center; color: #14151A; font-size: 16px; font-family: Inter; font-weight: 600; line-height: 24px; word-wrap: break-word">4</div>
-            <div data-layer="reorder-line" class="ReorderLine" style="width: 16px; height: 16px; position: relative">
-              <div data-layer="Vector" class="Vector" style="width: 12px; height: 8px; left: 2px; top: 4px; position: absolute; background: rgba(13, 17, 38, 0.40)"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div data-layer="Spacer" class="Spacer" style="width: 48px; align-self: stretch; padding-top: 1px; padding-bottom: 1px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: inline-flex">
-      <div data-layer="Mask" class="Mask" style="width: 48px; height: 128px; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 40%, black 60%, rgba(0, 0, 0, 0) 100%)"></div>
-      <div data-layer="Lines" class="Lines" style="align-self: stretch; height: 126px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-      </div>
-    </div>
-    <div data-layer="Transaction block" class="TransactionBlock" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
-      <div data-layer="Spacer" class="Spacer" style="align-self: stretch; flex: 1 1 0; padding: 24px; background: #DEE0E3; border-radius: 16px"></div>
-    </div>
-  </div>
-  <div data-layer="Transaction Block" class="TransactionBlock" style="align-self: stretch; justify-content: flex-start; align-items: flex-start; gap: 16px; display: inline-flex">
-    <div data-layer="Transaction block" class="TransactionBlock" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
-      <div data-layer="Spacer" class="Spacer" style="align-self: stretch; flex: 1 1 0; padding: 24px; background: #DEE0E3; border-radius: 16px"></div>
-    </div>
-    <div data-layer="Spacer" class="Spacer" style="width: 48px; align-self: stretch; padding-top: 1px; padding-bottom: 1px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: inline-flex">
-      <div data-layer="Mask" class="Mask" style="width: 48px; height: 128px; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 40%, black 60%, rgba(0, 0, 0, 0) 100%)"></div>
-      <div data-layer="Lines" class="Lines" style="align-self: stretch; height: 126px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-        <div data-layer="Line" class="Line" style="align-self: stretch; height: 0px; border: 1px rgba(0, 0, 0, 0.08) solid"></div>
-      </div>
-    </div>
-    <div data-layer="Transaction block" class="TransactionBlock" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
-      <div data-layer="Transaction block/Deal structure - base" class="TransactionBlockDealStructureBase" style="align-self: stretch; height: 128px; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: flex">
-        <div data-layer="Exchange item / Deal structure" class="ExchangeItemDealStructure" style="align-self: stretch; height: 128px; padding-top: 16px; padding-bottom: 16px; padding-left: 24px; padding-right: 32px; background: #F7F7F8; border-radius: 16px; flex-direction: column; justify-content: flex-start; align-items: center; gap: 24px; display: flex">
-          <div data-layer="Content" class="Content" style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-            <div data-layer="Frame" class="Frame" style="width: 6px; align-self: stretch; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-              <div data-layer="Indicator" class="Indicator" style="flex: 1 1 0; align-self: stretch; padding-top: 4px; padding-bottom: 4px; justify-content: center; align-items: center; gap: 8px; display: flex">
-                <div data-layer="Indicator" class="Indicator" style="width: 6px; height: 12px; background: #B78AF0; border-radius: 15px"></div>
-              </div>
-            </div>
-            <div data-layer="Frame" class="Frame" style="flex: 1 1 0; height: 96px; justify-content: flex-start; align-items: center; gap: 16px; display: flex">
-              <div data-layer="Details" class="Details" style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
-                <div data-layer="Title" class="Title" style="align-self: stretch; justify-content: space-between; align-items: center; display: inline-flex">
-                  <div data-layer="Container" class="Container" style="flex: 1 1 0; height: 24px; justify-content: flex-start; align-items: center; gap: 8px; display: flex">
-                    <div data-layer="Title Text" class="TitleText" style="flex: 1 1 0; color: #14151A; font-size: 16px; font-family: Inter; font-weight: 600; line-height: 24px; word-wrap: break-word">Cryptocurrency</div>
-                  </div>
-                </div>
-                <div data-layer="Container" class="Container" style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 16px; display: inline-flex">
-                  <div data-layer="Title Text" class="TitleText" style="color: rgba(13, 17, 38, 0.40); font-size: 14px; font-family: Inter; font-weight: 400; line-height: 20px; word-wrap: break-word">TRNS - 05</div>
-                  <div data-layer="Transaction status / Cryptocurrency" class="TransactionStatusCryptocurrency" style="justify-content: flex-start; align-items: flex-start; display: flex">
-                    <div data-layer="Status states" class="StatusStates" style="justify-content: flex-start; align-items: flex-start; display: flex">
-                      <div data-layer="Frame" class="Frame" style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 8px; display: inline-flex">
-                        <div data-layer="Badge" class="Badge" style="align-self: stretch; padding-left: 3px; padding-right: 3px; padding-top: 2px; padding-bottom: 2px; background: #E3EAFD; border-radius: 6px; justify-content: center; align-items: center; display: inline-flex">
-                          <div data-layer="Label" class="Label" style="padding-left: 3px; padding-right: 3px; justify-content: center; align-items: center; display: flex">
-                            <div data-layer="Label" class="Label" style="text-align: center; color: #133A9A; font-size: 12px; font-family: Inter; font-weight: 500; line-height: 16px; word-wrap: break-word">New</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div data-layer="Actions" class="Actions" style="flex: 1 1 0; height: 32px; justify-content: flex-start; align-items: flex-start; gap: 8px; display: flex">
-                <div data-layer="Frame" class="Frame" style="justify-content: flex-start; align-items: center; gap: 4px; display: flex">
-                  <div data-layer="Button" class="Button" style="padding: 8px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="lead-icon" class="LeadIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 12px; height: 13.33px; left: 2px; top: 1.33px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                  <div data-layer="Button" class="Button" style="padding: 8px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="lead-icon" class="LeadIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 13.33px; height: 13.33px; left: 1.33px; top: 1.33px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                </div>
-                <div data-layer="Button" class="Button" style="height: 32px; justify-content: flex-start; align-items: flex-start; display: flex">
-                  <div data-layer="Button" class="Button" style="padding-left: 10px; padding-right: 10px; padding-top: 6px; padding-bottom: 6px; background: white; box-shadow: 0px 1px 2px rgba(20, 21, 26, 0.05); border-radius: 10px; overflow: hidden; border: 1px #DEE0E3 solid; justify-content: center; align-items: center; gap: 2px; display: flex">
-                    <div data-layer="Text" class="Text" style="padding-left: 4px; padding-right: 4px; justify-content: center; align-items: center; display: flex">
-                      <div data-layer="Label" class="Label" style="text-align: center; color: #14151A; font-size: 14px; font-family: Inter; font-weight: 500; line-height: 20px; word-wrap: break-word">Show details</div>
-                    </div>
-                    <div data-layer="tail-icon" class="TailIcon" style="width: 16px; height: 16px; position: relative">
-                      <div data-layer="Vector" class="Vector" style="width: 8.01px; height: 8.01px; left: 3.99px; top: 4px; position: absolute; background: rgba(15, 19, 36, 0.60)"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div data-layer="Order button" class="OrderButton" style="height: 56px; padding-top: 8px; padding-bottom: 8px; background: white; box-shadow: 0px 2px 4px -1px rgba(20, 21, 26, 0.06); border-radius: 999px; border: 1px #DEE0E3 solid; flex-direction: column; justify-content: flex-start; align-items: center; display: flex">
-            <div data-layer="Initials" class="Initials" style="align-self: stretch; text-align: center; color: #14151A; font-size: 16px; font-family: Inter; font-weight: 600; line-height: 24px; word-wrap: break-word">5</div>
-            <div data-layer="reorder-line" class="ReorderLine" style="width: 16px; height: 16px; position: relative">
-              <div data-layer="Vector" class="Vector" style="width: 12px; height: 8px; left: 2px; top: 4px; position: absolute; background: rgba(13, 17, 38, 0.40)"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+
+    <div class="timeline" id="timeline">
+      <!-- Timeline content will be added here -->
     </div>
   </div>
 </div>
+
+<script>
+  let transactionCounter = 1;
+
+  function createTransactionCard(type, index) {
+    const card = document.createElement('div');
+    card.className = 'transaction-card';
+    card.draggable = true;
+    card.innerHTML = `
+                <div class="transaction-header">
+                    <div>
+                        <div class="transaction-title">Payment system</div>
+                        <div class="transaction-id">TRNS-0${index}</div>
+                    </div>
+                    <div class="transaction-status">Approved by Client</div>
+                </div>
+                <div>
+                    <span class="badge new">New</span>
+                    <span class="badge">${type}</span>
+                </div>
+                <div class="card-actions">
+                    <button class="action-button">Hide details</button>
+                </div>
+                <div class="timeline-number">${index}</div>
+            `;
+
+    card.addEventListener('dragstart', handleDragStart);
+    card.addEventListener('dragend', handleDragEnd);
+    card.addEventListener('dragover', handleDragOver);
+    card.addEventListener('drop', handleDrop);
+
+    return card;
+  }
+
+  function createTimelineRow() {
+    const row = document.createElement('div');
+    row.className = 'timeline-row';
+    row.style.display = 'contents';
+
+    const leftCell = document.createElement('div');
+    const connector = document.createElement('div');
+    const rightCell = document.createElement('div');
+
+    connector.className = 'connector';
+
+    row.appendChild(leftCell);
+    row.appendChild(connector);
+    row.appendChild(rightCell);
+
+    return row;
+  }
+
+  function addTransaction(type) {
+    const timeline = document.getElementById('timeline');
+    const row = createTimelineRow();
+    const card = createTransactionCard(type, transactionCounter++);
+
+    if (type === 'gives') {
+      row.children[0].appendChild(card);
+    } else {
+      row.children[2].appendChild(card);
+    }
+
+    timeline.appendChild(row);
+  }
+
+  let draggedElement = null;
+  let originalParent = null;
+  let originalNextSibling = null;
+
+  function handleDragStart(e) {
+    draggedElement = e.target;
+    originalParent = e.target.parentNode;
+    originalNextSibling = e.target.nextSibling;
+    setTimeout(() => e.target.style.opacity = '0.5', 0);
+  }
+
+  function handleDragEnd(e) {
+    e.target.style.opacity = '1';
+    const placeholders = document.querySelectorAll('.placeholder');
+    placeholders.forEach(placeholder => placeholder.remove());
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    const card = e.target.closest('.transaction-card');
+    if (card && card !== draggedElement) {
+      const rect = card.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      if (e.clientY < midpoint) {
+        card.parentNode.insertBefore(draggedElement, card);
+      } else {
+        card.parentNode.insertBefore(draggedElement, card.nextSibling);
+      }
+    }
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    const dropTarget = e.target.closest('.transaction-card');
+    if (dropTarget && dropTarget !== draggedElement) {
+      const rect = dropTarget.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      if (e.clientY < midpoint) {
+        dropTarget.parentNode.insertBefore(draggedElement, dropTarget);
+      } else {
+        dropTarget.parentNode.insertBefore(draggedElement, dropTarget.nextSibling);
+      }
+    }
+  }
+
+  // Initialize with some example transactions
+  addTransaction('gives');
+  addTransaction('receives');
+</script>
 </body>
 </html>

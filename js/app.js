@@ -1,181 +1,232 @@
-let transactionCounter = 1;
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
-// Initialize JSON data
-const dealData = {
-  operations: [
-    { id: 1, gives: true, status: 'Approved by Client', code: 'TRNS - 1', order: 1, color: "#B78AF0", isEmpty: false, text: 'Cryptocurrency' },
-    { id: 2, gives: false, status: 'New', code: 'TRNS - 2', order: 2, color: "#6AE1A1", isEmpty: false, text: 'Cash (Ukraine)' },
-    { id: 3, gives: true, status: 'Rate received', code: 'TRNS - 3', order: 3, color: "#6AE1A1", isEmpty: false, text: 'Cash (World)' },
-    { id: 4, gives: false, status: 'New', code: 'TRNS - 4', order: 4, color: "#6AE1A1", isEmpty: false, text: 'Bank card' },
-  ],
-};
+let currentDealId = null;
+let selectedOptionId = null;
 
-function addTransaction(side) {
-  const container = document.getElementById(side);
+const createDealForm = document.getElementById('createDealForm');
+const transactionList = document.getElementById('transactionList');
+const createDealNav = document.getElementById('createDealNav');
+const manageTransactionsNav = document.getElementById('manageTransactionsNav');
+const alertContainer = document.getElementById('alertContainer');
+const createClientGives = document.getElementById('createClientGives');
+const createClientReceives = document.getElementById('createClientReceives');
+const dealList = document.getElementById('dealList');
 
-  // Create new transaction object and add it to JSON
-  const newTransaction = {
-    id: transactionCounter,
-    gives: side === "client-gives",
-    status: 'New',
-    code: `TRNS - ${transactionCounter}`,
-    order: transactionCounter,
-    color: "#CCCCCC",
-    isEmpty: false,
-    text: side === "client-gives" ? "New Give" : "New Receive",
-  };
-  dealData.operations.push(newTransaction);
+// Toggle sections
+function toggleSections(activeNav) {
+  document.querySelectorAll('.navbar a').forEach(nav => nav.classList.remove('active'));
+  activeNav.classList.add('active');
 
-  const transaction = createTransactionElement(side, transactionCounter);
-  const mirroredTransaction = createTransactionElement(
-    side === "client-gives" ? "client-receives" : "client-gives",
-    transactionCounter,
-    true
-  );
+  document.getElementById('dealCreationSection').style.display =
+    activeNav === createDealNav ? 'block' : 'none';
+  document.getElementById('dealManagementSection').style.display =
+    activeNav === manageTransactionsNav ? 'block' : 'none';
 
-  container.appendChild(transaction);
-  document.getElementById(side === "client-gives" ? "client-receives" : "client-gives").appendChild(mirroredTransaction);
-
-  transactionCounter++;
+  if (activeNav === manageTransactionsNav) fetchTransactions();
 }
 
-function deleteTransaction(id) {
-  // Remove transaction from JSON
-  dealData.operations = dealData.operations.filter((op) => op.id !== id);
+createDealNav.addEventListener('click', () => toggleSections(createDealNav));
+manageTransactionsNav.addEventListener('click', () => toggleSections(manageTransactionsNav));
 
-  // Remove the transaction and its mirrored version from DOM
-  const transaction = document.getElementById(`transaction-${id}`);
-  const mirroredTransaction = document.getElementById(`mirror-transaction-${id}`);
-
-  if (transaction) transaction.remove();
-  if (mirroredTransaction) mirroredTransaction.remove();
-
-  updateOrderNumbers();
+// Show alerts
+function showAlert(message, type = 'danger') {
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type} alert-dismissible fade show`;
+  alert.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+  alertContainer.appendChild(alert);
+  setTimeout(() => alert.remove(), 5000);
 }
 
-function createTransactionElement(side, id, isMirror = false) {
-  const transaction = document.createElement("div");
-  transaction.classList.add("transaction");
-  if (isMirror) transaction.classList.add("mirror");
-  transaction.id = `${isMirror ? "mirror-" : ""}transaction-${id}`;
-  transaction.draggable = !isMirror;
+// Create deal
+document.getElementById('createDealBtn').addEventListener('click', async () => {
+  const dealName = prompt('Enter deal name:');
+  if (!dealName) return;
 
-  transaction.innerHTML = `
-    <div class="details">
-      <div class="title">Transaction</div>
-      <div class="subtitle">${side === "client-gives" ? "Gives" : "Receives"} - ${id}</div>
-      <div class="badge">New</div>
-    </div>
-    <div class="order-number"><span>${id}</span></div>
-    ${
-    !isMirror
-      ? `<button onclick="deleteTransaction(${id})" class="delete-btn">Delete</button>`
-      : ""
-  }
-  `;
-
-  if (!isMirror) {
-    transaction.addEventListener("dragstart", onDragStart);
-    transaction.addEventListener("dragover", onDragOver);
-    transaction.addEventListener("drop", onDrop);
-    transaction.addEventListener("dragend", onDragEnd);
-  }
-
-  return transaction;
-}
-
-let currentDrag = null;
-
-function onDragStart(event) {
-  currentDrag = event.target;
-  event.dataTransfer.setData("text/plain", currentDrag.id);
-  currentDrag.style.opacity = 0.5;
-}
-
-function onDragOver(event) {
-  event.preventDefault();
-  const target = event.target.closest(".transaction");
-  if (target && target !== currentDrag) {
-    const rect = target.getBoundingClientRect();
-    const isBelow = event.clientY > rect.top + rect.height / 2;
-    const container = target.parentElement;
-
-    if (isBelow) {
-      container.insertBefore(currentDrag, target.nextSibling);
-    } else {
-      container.insertBefore(currentDrag, target);
-    }
-  }
-}
-
-function onDrop(event) {
-  event.preventDefault();
-
-  const transactionId = event.dataTransfer.getData("text/plain");
-  const draggedTransaction = document.getElementById(transactionId);
-
-  const containers = document.querySelectorAll(".side-container");
-
-  containers.forEach((container) => {
-    if (container.contains(draggedTransaction)) {
-      const mirroredId = `mirror-${transactionId}`;
-      const mirroredTransaction = document.getElementById(mirroredId);
-
-      if (mirroredTransaction) {
-        const transactions = Array.from(container.children).filter(
-          (child) =>
-            child.classList.contains("transaction") &&
-            !child.classList.contains("mirror")
-        );
-
-        const mirroredContainer = document.getElementById(
-          container.id === "client-gives" ? "client-receives" : "client-gives"
-        );
-
-        const currentIndex = transactions.indexOf(draggedTransaction);
-        const mirroredTransactions = Array.from(
-          mirroredContainer.children
-        ).filter((child) => child.classList.contains("mirror"));
-
-        mirroredContainer.insertBefore(
-          mirroredTransaction,
-          mirroredTransactions[currentIndex] || null
-        );
-      }
-    }
-  });
-
-  updateOrderNumbers();
-}
-
-function onDragEnd(event) {
-  event.target.style.opacity = 1;
-  updateOrderNumbers();
-}
-
-function updateOrderNumbers() {
-  const containers = Array.from(document.querySelectorAll(".side-container"));
-
-  containers.forEach((container) => {
-    const transactions = Array.from(container.children).filter(
-      (child) =>
-        child.classList.contains("transaction") &&
-        !child.classList.contains("mirror")
-    );
-
-    transactions.forEach((transaction, index) => {
-      const orderNumber = transaction.querySelector(".order-number span");
-      orderNumber.textContent = index + 1;
-
-      const id = parseInt(transaction.id.replace("transaction-", ""));
-      const mirroredTransaction = document.getElementById(`mirror-transaction-${id}`);
-
-      if (mirroredTransaction) {
-        const mirroredOrderNumber = mirroredTransaction.querySelector(
-          ".order-number span"
-        );
-        mirroredOrderNumber.textContent = index + 1;
-      }
+  try {
+    const response = await fetch(`${API_BASE_URL}/deals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: dealName }),
     });
-  });
+
+    if (!response.ok) throw new Error('Failed to create deal');
+    const data = await response.json();
+    currentDealId = data.id;
+    selectedOptionId = null;
+    showAlert('Deal created successfully!', 'success');
+    manageTransactionsNav.style.display = 'block';
+    toggleSections(manageTransactionsNav);
+    fetchDeals();
+  } catch (err) {
+    showAlert(err.message);
+  }
+});
+
+// Fetch and display deals
+async function fetchDeals() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/deals`);
+    const deals = await response.json();
+    dealList.innerHTML = '';
+    deals.forEach(deal => {
+      const card = document.createElement('div');
+      card.className = 'card mb-3';
+      card.innerHTML = `
+        <div class="card-body">
+          <h5 class="card-title">${deal.name}</h5>
+          <button class="btn btn-primary" onclick="selectDeal(${deal.id})">Manage</button>
+        </div>
+      `;
+      dealList.appendChild(card);
+    });
+  } catch {
+    showAlert('Failed to fetch deals');
+  }
 }
+
+// Select a deal
+function selectDeal(dealId) {
+  currentDealId = dealId;
+  selectedOptionId = null;
+  toggleSections(manageTransactionsNav);
+  fetchTransactions();
+}
+
+// Fetch and display transactions
+async function fetchTransactions() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/transactions?deal_id=${currentDealId}`);
+    const transactions = await response.json();
+    transactionList.innerHTML = '';
+    transactions.forEach(addTransactionToList);
+  } catch {
+    showAlert('Failed to fetch transactions');
+  }
+}
+
+// Add transaction to list
+function addTransactionToList(transaction) {
+  const container = transaction.type === 'Client Gives' ? 'success' : 'danger';
+  const card = document.createElement('div');
+  card.className = `compact-transaction-card ${container}`;
+  card.dataset.transactionId = transaction.id;
+
+  card.innerHTML = `
+    <div class="compact-status-indicator ${transaction.type === 'Client Gives' ? 'success' : 'danger'}"></div>
+    <div class="transaction-info">
+      <div class="compact-title">${transaction.name}</div>
+      <div class="compact-transaction-info">${transaction.type}</div>
+      <div>${transaction.amount} ${transaction.currency}</div>
+      <div>
+        <button class="btn btn-sm btn-primary" onclick="editTransaction(${transaction.id})">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteTransaction(${transaction.id})">Delete</button>
+      </div>
+    </div>
+  `;
+  transactionList.appendChild(card);
+}
+
+// Edit transaction
+async function editTransaction(transactionId) {
+  const transaction = await fetchTransactionById(transactionId);
+  const card = document.querySelector(`[data-transaction-id="${transactionId}"]`);
+
+  card.querySelector('.compact-title').setAttribute('contenteditable', 'true');
+  card.querySelector('.compact-transaction-info').setAttribute('contenteditable', 'true');
+  card.querySelector('.transaction-info').setAttribute('contenteditable', 'true');
+  card.querySelector('button').style.display = 'none';
+
+  const saveButton = document.createElement('button');
+  saveButton.className = 'btn btn-sm btn-success';
+  saveButton.innerText = 'Save';
+  saveButton.onclick = async () => {
+    const updatedTitle = card.querySelector('.compact-title').innerText;
+    const updatedInfo = card.querySelector('.compact-transaction-info').innerText;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: updatedTitle,
+          type: updatedInfo,
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to update transaction');
+      showAlert('Transaction updated successfully!', 'success');
+      fetchTransactions();
+    } catch (err) {
+      showAlert(err.message);
+    }
+  };
+
+  card.querySelector('.transaction-info').appendChild(saveButton);
+}
+
+// Fetch single transaction
+async function fetchTransactionById(transactionId) {
+  const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}`);
+  return await response.json();
+}
+
+// Delete transaction
+async function deleteTransaction(transactionId) {
+  if (!confirm('Are you sure you want to delete this transaction?')) return;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete transaction');
+    showAlert('Transaction deleted successfully!', 'success');
+    fetchTransactions();
+  } catch (err) {
+    showAlert(err.message);
+  }
+}
+
+// Create transactions (Client Gives/Receives) with currency dropdown
+function showCurrencyOptions(type) {
+  const currencies = ['USD', 'EUR', 'RON'];
+  const currencyButtons = currencies.map(currency => {
+    return `<button class="btn btn-secondary" onclick="createTransaction('${type}', '${currency}')">${currency}</button>`;
+  }).join('');
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'currency-dropdown';
+  dropdown.innerHTML = currencyButtons;
+
+  document.querySelector(`#create${type}`).appendChild(dropdown);
+}
+
+createClientGives.addEventListener('click', () => showCurrencyOptions('Client Gives'));
+createClientReceives.addEventListener('click', () => showCurrencyOptions('Client Receives'));
+
+// Create transactions
+async function createTransaction(type, currency) {
+  const amount = Math.floor(Math.random() * 1000) + 1; // Random amount for now
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/transactions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        option_id: selectedOptionId || 1, // Replace with actual selected option logic
+        name: `${type} Transaction`,
+        type,
+        amount,
+        currency,
+      }),
+    });
+
+    if (!response.ok) throw new Error('Failed to create transaction');
+    const transaction = await response.json();
+    addTransactionToList(transaction);
+    showAlert('Transaction created successfully!', 'success');
+  } catch (err) {
+    showAlert(err.message);
+  }
+}
+
+// Initialization
+fetchDeals();
