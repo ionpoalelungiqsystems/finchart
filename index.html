@@ -2,17 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <link href="favicon.webp" rel="icon">
-  <link href="favicon.webp" rel="apple-touch-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deal Timeline Manager</title>
+  <title>Deal Manager</title>
   <style>
     :root {
-      --primary-blue: #0066FF;
-      --light-gray: #F5F5F5;
-      --border-color: #E5E7EB;
-      --success-green: #10B981;
+      --sidebar-width: 250px;
+      --header-height: 60px;
       --primary-purple: #B78AF0;
+      --primary-green: #6AE1A1;
+      --text-gray: #666;
+      --border-color: #eee;
     }
 
     * {
@@ -23,366 +22,377 @@
     }
 
     body {
-      background: var(--light-gray);
+      background: #f5f5f5;
+      min-height: 100vh;
     }
 
     .sidebar {
       position: fixed;
-      width: 250px;
+      width: var(--sidebar-width);
       height: 100vh;
       background: white;
       padding: 20px;
       border-right: 1px solid var(--border-color);
+      z-index: 10;
     }
 
     .main-content {
-      margin-left: 250px;
+      margin-left: var(--sidebar-width);
       padding: 20px;
-    }
-
-    .header {
-      background: white;
-      padding: 15px 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .deal-info {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .status-badge {
-      padding: 4px 12px;
-      border-radius: 12px;
-      background: var(--primary-blue);
-      color: white;
-      font-size: 14px;
-    }
-
-    .timeline-container {
       position: relative;
-      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .transaction-container {
       background: white;
       border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+      min-height: 500px;
+      position: relative;
     }
 
-    .timeline-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-
-    .column-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .add-button {
-      padding: 5px 10px;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      background: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .timeline {
+    .transaction-columns {
       display: grid;
-      grid-template-columns: 1fr 60px 1fr;
-      gap: 0;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
       position: relative;
-    }
-
-    .timeline::before {
-      content: '';
-      position: absolute;
-      left: calc(50% - 1px);
-      top: 0;
-      height: 100%;
-      width: 2px;
-      background: var(--border-color);
-      z-index: 1;
-    }
-
-    .connector {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .connector::after {
-      content: 'FC';
-      width: 30px;
-      height: 30px;
-      background: white;
-      border: 2px solid var(--border-color);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      z-index: 2;
     }
 
     .transaction-card {
+      position: relative;
       background: white;
-      border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 15px;
-      margin: 10px;
-      position: relative;
-      cursor: move;
-    }
-
-    .transaction-card::before {
-      content: '';
-      position: absolute;
-      left: -4px;
-      top: 0;
-      height: 100%;
-      width: 4px;
-      background: var(--success-green);
-      border-radius: 4px 0 0 4px;
-    }
-
-    .transaction-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
       margin-bottom: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .transaction-card.selected {
+      border: 2px solid var(--primary-purple);
+      background: #faf5ff;
+    }
+
+    .transaction-card.main {
+      border: 2px solid #000;
+      background: #f0f0f0;
+    }
+
+    .transaction-status {
+      width: 4px;
+      height: 40px;
+      border-radius: 2px;
+    }
+
+    .transaction-details {
+      flex: 1;
     }
 
     .transaction-title {
       font-weight: 500;
-      color: #111827;
+      margin-bottom: 4px;
     }
 
-    .transaction-status {
-      font-size: 12px;
-      color: var(--success-green);
+    .transaction-info {
+      font-size: 14px;
+      color: var(--text-gray);
     }
 
-    .transaction-id {
-      font-size: 12px;
-      color: #6B7280;
+    .connection-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 1;
     }
 
-    .card-actions {
+    .connection-line {
+      position: absolute;
+      height: 2px;
+      background: #B78AF0;
+      transform-origin: 0 50%;
+    }
+
+    .connection-line::after {
+      content: '';
+      position: absolute;
+      right: -6px;
+      top: -4px;
+      width: 0;
+      height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 8px solid #B78AF0;
+    }
+
+    .multi-select-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
       display: flex;
+      align-items: center;
       gap: 10px;
-      margin-top: 10px;
+      background: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 3;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: var(--primary-purple);
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(20px);
+    }
+
+    .column-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .action-button {
-      padding: 4px 8px;
+      padding: 8px 16px;
       border: 1px solid var(--border-color);
       border-radius: 4px;
       background: white;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 14px;
     }
 
-    .placeholder {
-      border: 2px dashed #ccc;
-      background: #f9f9f9;
-      height: 100px;
-      margin: 10px;
-      border-radius: 8px;
+    .action-button:hover {
+      background: #f5f5f5;
     }
-
-    .badge {
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      background: #E5E7EB;
-      color: #374151;
-      display: inline-block;
-      margin-right: 5px;
-    }
-
-    .badge.new {
-      background: #EEF2FF;
-      color: #4F46E5;
-    }
-
-    .timeline-number {
-      position: absolute;
-      right: -25px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 20px;
-      height: 20px;
-      background: #E5E7EB;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      color: #374151;
-      z-index: 3;
-    }
-
   </style>
 </head>
 <body>
 <div class="sidebar">
   <div class="logo">FinCraft</div>
-  <!-- Sidebar content -->
 </div>
 
 <div class="main-content">
-  <div class="header">
-    <div class="deal-info">
-      <h2>DEAL - 01</h2>
-      <span class="status-badge">In progress</span>
-      <span>Davis_Berg</span>
-    </div>
-    <div class="actions">
-      <button class="add-button">Version 1.1</button>
-      <button class="add-button">Actions</button>
-    </div>
+  <div class="multi-select-toggle">
+    <span>Multiple options</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="multiSelectToggle">
+      <span class="toggle-slider"></span>
+    </label>
   </div>
 
-  <div class="timeline-container">
-    <div class="timeline-header">
-      <div class="column-title">
-        <h3>Client gives</h3>
-        <button class="add-button" onclick="addTransaction('gives')">+ Add</button>
+  <div class="transaction-container">
+    <div class="transaction-columns">
+      <div id="givesColumn">
+        <div class="column-header">
+          <h3>Client gives</h3>
+          <button class="action-button" onclick="addTransaction('gives')">+ Add</button>
+        </div>
+        <div id="givesList"></div>
       </div>
-      <div class="column-title">
-        <h3>Client receives</h3>
-        <button class="add-button" onclick="addTransaction('receives')">+ Add</button>
+      <div id="receivesColumn">
+        <div class="column-header">
+          <h3>Client receives</h3>
+          <button class="action-button" onclick="addTransaction('receives')">+ Add</button>
+        </div>
+        <div id="receivesList"></div>
       </div>
-    </div>
-
-    <div class="timeline" id="timeline">
-      <!-- Timeline content will be added here -->
+      <div class="connection-container" id="connectionContainer"></div>
     </div>
   </div>
 </div>
 
 <script>
-  let transactionCounter = 1;
+  let selectedCards = {
+    gives: new Set(),
+    receives: new Set()
+  };
+  let mainCard = null;
+  let isMultiSelect = false;
 
-  function createTransactionCard(type, index) {
-    const card = document.createElement('div');
-    card.className = 'transaction-card';
-    card.draggable = true;
-    card.innerHTML = `
-                <div class="transaction-header">
-                    <div>
-                        <div class="transaction-title">Payment system</div>
-                        <div class="transaction-id">TRNS-0${index}</div>
-                    </div>
-                    <div class="transaction-status">Approved by Client</div>
-                </div>
-                <div>
-                    <span class="badge new">New</span>
-                    <span class="badge">${type}</span>
-                </div>
-                <div class="card-actions">
-                    <button class="action-button">Hide details</button>
-                </div>
-                <div class="timeline-number">${index}</div>
-            `;
-
-    card.addEventListener('dragstart', handleDragStart);
-    card.addEventListener('dragend', handleDragEnd);
-    card.addEventListener('dragover', handleDragOver);
-    card.addEventListener('drop', handleDrop);
-
-    return card;
-  }
-
-  function createTimelineRow() {
-    const row = document.createElement('div');
-    row.className = 'timeline-row';
-    row.style.display = 'contents';
-
-    const leftCell = document.createElement('div');
-    const connector = document.createElement('div');
-    const rightCell = document.createElement('div');
-
-    connector.className = 'connector';
-
-    row.appendChild(leftCell);
-    row.appendChild(connector);
-    row.appendChild(rightCell);
-
-    return row;
-  }
+  document.getElementById('multiSelectToggle').addEventListener('change', (e) => {
+    isMultiSelect = e.target.checked;
+    if (!isMultiSelect) {
+      clearSelections();
+    }
+    updateConnections();
+  });
 
   function addTransaction(type) {
-    const timeline = document.getElementById('timeline');
-    const row = createTimelineRow();
-    const card = createTransactionCard(type, transactionCounter++);
+    const container = document.getElementById(`${type}List`);
+    const card = document.createElement('div');
+    card.className = 'transaction-card';
+    card.dataset.type = type;
+    card.dataset.id = `${type}-${Date.now()}`;
 
-    if (type === 'gives') {
-      row.children[0].appendChild(card);
+    const status = document.createElement('div');
+    status.className = 'transaction-status';
+    status.style.background = type === 'gives' ? 'var(--primary-green)' : 'var(--primary-purple)';
+
+    const details = document.createElement('div');
+    details.className = 'transaction-details';
+
+    const title = document.createElement('div');
+    title.className = 'transaction-title';
+    title.textContent = `${type === 'gives' ? 'Give' : 'Receive'} - ${new Date().toLocaleTimeString()}`;
+
+    const info = document.createElement('div');
+    info.className = 'transaction-info';
+    info.textContent = type === 'gives' ? 'Cashless' : 'Cryptocurrency';
+
+    details.appendChild(title);
+    details.appendChild(info);
+    card.appendChild(status);
+    card.appendChild(details);
+
+    card.addEventListener('click', () => handleCardClick(card));
+    container.appendChild(card);
+    updateConnections();
+  }
+
+  function handleCardClick(card) {
+    const type = card.dataset.type;
+    const id = card.dataset.id;
+
+    if (isMultiSelect) {
+      if (selectedCards[type].has(id)) {
+        selectedCards[type].delete(id);
+        card.classList.remove('selected');
+      } else {
+        selectedCards[type].add(id);
+        card.classList.add('selected');
+      }
     } else {
-      row.children[2].appendChild(card);
+      const wasMain = card.classList.contains('main');
+      clearSelections();
+      if (!wasMain) {
+        card.classList.add('main');
+        mainCard = id;
+      }
     }
 
-    timeline.appendChild(row);
+    updateConnections();
   }
 
-  let draggedElement = null;
-  let originalParent = null;
-  let originalNextSibling = null;
-
-  function handleDragStart(e) {
-    draggedElement = e.target;
-    originalParent = e.target.parentNode;
-    originalNextSibling = e.target.nextSibling;
-    setTimeout(() => e.target.style.opacity = '0.5', 0);
+  function clearSelections() {
+    document.querySelectorAll('.transaction-card').forEach(card => {
+      card.classList.remove('selected', 'main');
+    });
+    selectedCards.gives.clear();
+    selectedCards.receives.clear();
+    mainCard = null;
   }
 
-  function handleDragEnd(e) {
-    e.target.style.opacity = '1';
-    const placeholders = document.querySelectorAll('.placeholder');
-    placeholders.forEach(placeholder => placeholder.remove());
-  }
+  function updateConnections() {
+    const container = document.getElementById('connectionContainer');
+    container.innerHTML = '';
 
-  function handleDragOver(e) {
-    e.preventDefault();
-    const card = e.target.closest('.transaction-card');
-    if (card && card !== draggedElement) {
-      const rect = card.getBoundingClientRect();
-      const midpoint = rect.top + rect.height / 2;
-      if (e.clientY < midpoint) {
-        card.parentNode.insertBefore(draggedElement, card);
-      } else {
-        card.parentNode.insertBefore(draggedElement, card.nextSibling);
+    if (isMultiSelect) {
+      selectedCards.gives.forEach(giveId => {
+        const giveCard = document.querySelector(`[data-id="${giveId}"]`);
+        selectedCards.receives.forEach(receiveId => {
+          const receiveCard = document.querySelector(`[data-id="${receiveId}"]`);
+          if (giveCard && receiveCard) {
+            drawConnection(giveCard, receiveCard);
+          }
+        });
+      });
+    } else if (mainCard) {
+      const mainElement = document.querySelector(`[data-id="${mainCard}"]`);
+      if (mainElement) {
+        const type = mainElement.dataset.type;
+        const otherCards = document.querySelectorAll(
+          `.transaction-card[data-type="${type === 'gives' ? 'receives' : 'gives'}"]`
+        );
+        otherCards.forEach(card => {
+          drawConnection(
+            type === 'gives' ? mainElement : card,
+            type === 'gives' ? card : mainElement
+          );
+        });
       }
     }
   }
 
-  function handleDrop(e) {
-    e.preventDefault();
-    const dropTarget = e.target.closest('.transaction-card');
-    if (dropTarget && dropTarget !== draggedElement) {
-      const rect = dropTarget.getBoundingClientRect();
-      const midpoint = rect.top + rect.height / 2;
-      if (e.clientY < midpoint) {
-        dropTarget.parentNode.insertBefore(draggedElement, dropTarget);
-      } else {
-        dropTarget.parentNode.insertBefore(draggedElement, dropTarget.nextSibling);
-      }
-    }
+  function drawConnection(fromCard, toCard) {
+    const container = document.getElementById('connectionContainer');
+    const line = document.createElement('div');
+    line.className = 'connection-line';
+
+    const fromRect = fromCard.getBoundingClientRect();
+    const toRect = toCard.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+
+    const startX = fromRect.right - containerRect.left;
+    const startY = fromRect.top + (fromRect.height / 2) - containerRect.top;
+    const endX = toRect.left - containerRect.left;
+    const endY = toRect.top + (toRect.height / 2) - containerRect.top;
+
+    const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+    const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+
+    line.style.width = `${length}px`;
+    line.style.left = `${startX}px`;
+    line.style.top = `${startY}px`;
+    line.style.transform = `rotate(${angle}deg)`;
+
+    container.appendChild(line);
   }
 
-  // Initialize with some example transactions
+  window.addEventListener('resize', updateConnections);
+  window.addEventListener('scroll', updateConnections);
+
+  // Add initial transactions for testing
   addTransaction('gives');
+  addTransaction('gives');
+  addTransaction('receives');
   addTransaction('receives');
 </script>
 </body>

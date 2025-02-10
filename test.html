@@ -2,8 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <link href="favicon.webp" rel="icon">
-  <link href="favicon.webp" rel="apple-touch-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Deal Timeline Manager</title>
   <style>
@@ -38,6 +36,25 @@
     .main-content {
       margin-left: 250px;
       padding: 20px;
+      display: flex;
+      gap: 20px;
+    }
+
+    .timeline-wrapper {
+      flex: 1;
+    }
+
+    .details-panel {
+      width: 400px;
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      height: fit-content;
+      display: none;
+    }
+
+    .details-panel.active {
+      display: block;
     }
 
     .header {
@@ -65,10 +82,9 @@
     }
 
     .timeline-container {
-      position: relative;
-      padding: 20px;
       background: white;
       border-radius: 8px;
+      padding: 20px;
     }
 
     .timeline-header {
@@ -76,6 +92,7 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 30px;
+      padding: 0 20px;
     }
 
     .column-title {
@@ -141,7 +158,11 @@
       padding: 15px;
       margin: 10px;
       position: relative;
-      cursor: move;
+      cursor: pointer;
+    }
+
+    .transaction-card.selected {
+      border: 2px solid var(--primary-blue);
     }
 
     .transaction-card::before {
@@ -192,14 +213,6 @@
       font-size: 12px;
     }
 
-    .placeholder {
-      border: 2px dashed #ccc;
-      background: #f9f9f9;
-      height: 100px;
-      margin: 10px;
-      border-radius: 8px;
-    }
-
     .badge {
       padding: 2px 8px;
       border-radius: 12px;
@@ -232,74 +245,173 @@
       z-index: 3;
     }
 
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: #374151;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .button-primary {
+      width: 100%;
+      padding: 10px;
+      background: #000;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .details-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .dragover {
+      border: 2px dashed var(--primary-blue);
+      background: #F0F7FF;
+    }
   </style>
 </head>
 <body>
 <div class="sidebar">
   <div class="logo">FinCraft</div>
-  <!-- Sidebar content -->
 </div>
 
 <div class="main-content">
-  <div class="header">
-    <div class="deal-info">
-      <h2>DEAL - 01</h2>
-      <span class="status-badge">In progress</span>
-      <span>Davis_Berg</span>
+  <div class="timeline-wrapper">
+    <div class="header">
+      <div class="deal-info">
+        <h2>DEAL - 01</h2>
+        <span class="status-badge">In progress</span>
+        <span>Davis_Berg</span>
+      </div>
+      <div class="actions">
+        <button class="add-button">Version 1.1</button>
+        <button class="add-button">Actions</button>
+      </div>
     </div>
-    <div class="actions">
-      <button class="add-button">Version 1.1</button>
-      <button class="add-button">Actions</button>
+
+    <div class="timeline-container">
+      <div class="timeline-header">
+        <div class="column-title">
+          <h3>Client gives</h3>
+          <button class="add-button" onclick="addTransaction('gives')">+ Add</button>
+        </div>
+        <div class="column-title">
+          <h3>Client receives</h3>
+          <button class="add-button" onclick="addTransaction('receives')">+ Add</button>
+        </div>
+      </div>
+
+      <div class="timeline" id="timeline">
+        <!-- Timeline content will be added here -->
+      </div>
     </div>
   </div>
 
-  <div class="timeline-container">
-    <div class="timeline-header">
-      <div class="column-title">
-        <h3>Client gives</h3>
-        <button class="add-button" onclick="addTransaction('gives')">+ Add</button>
-      </div>
-      <div class="column-title">
-        <h3>Client receives</h3>
-        <button class="add-button" onclick="addTransaction('receives')">+ Add</button>
-      </div>
+  <div class="details-panel" id="detailsPanel">
+    <div class="details-header">
+      <h3>Payment system</h3>
+      <button class="close-button" onclick="closeDetailsPanel()">×</button>
     </div>
-
-    <div class="timeline" id="timeline">
-      <!-- Timeline content will be added here -->
+    <div class="form-group">
+      <label>TRNS ID</label>
+      <input type="text" id="transId" readonly>
     </div>
+    <div class="form-group">
+      <label>Payment system</label>
+      <select id="paymentSystem">
+        <option value="">Select...</option>
+        <option value="system1">System 1</option>
+        <option value="system2">System 2</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Currency</label>
+      <select id="currency">
+        <option value="">Select...</option>
+        <option value="USD">USD</option>
+        <option value="EUR">EUR</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Amount</label>
+      <input type="number" id="amount">
+    </div>
+    <button class="button-primary" onclick="updateTransaction()">Move to Next status</button>
   </div>
 </div>
 
 <script>
   let transactionCounter = 1;
+  let selectedCard = null;
+  let transactions = [];
 
   function createTransactionCard(type, index) {
     const card = document.createElement('div');
     card.className = 'transaction-card';
     card.draggable = true;
+    card.dataset.type = type;
+    card.dataset.index = index;
+
+    const transaction = {
+      id: `TRNS-${String(index).padStart(2, '0')}`,
+      type: type,
+      status: 'Approved by Client',
+      title: 'Payment system',
+      index: index
+    };
+    transactions.push(transaction);
+
     card.innerHTML = `
-                <div class="transaction-header">
-                    <div>
-                        <div class="transaction-title">Payment system</div>
-                        <div class="transaction-id">TRNS-0${index}</div>
-                    </div>
-                    <div class="transaction-status">Approved by Client</div>
-                </div>
-                <div>
-                    <span class="badge new">New</span>
-                    <span class="badge">${type}</span>
-                </div>
-                <div class="card-actions">
-                    <button class="action-button">Hide details</button>
-                </div>
-                <div class="timeline-number">${index}</div>
-            `;
+    <div class="transaction-header">
+      <div>
+        <div class="transaction-title">${transaction.title}</div>
+        <div class="transaction-id">${transaction.id}</div>
+      </div>
+      <div class="transaction-status">${transaction.status}</div>
+    </div>
+    <div>
+      <span class="badge new">New</span>
+      <span class="badge">${type}</span>
+    </div>
+    <div class="card-actions">
+      <button class="action-button">Show details</button>
+    </div>
+    <div class="timeline-number">${index}</div>
+  `;
 
     card.addEventListener('dragstart', handleDragStart);
     card.addEventListener('dragend', handleDragEnd);
     card.addEventListener('dragover', handleDragOver);
     card.addEventListener('drop', handleDrop);
+    card.addEventListener('dragenter', handleDragEnter);
+    card.addEventListener('dragleave', handleDragLeave);
+    card.addEventListener('click', () => showDetailsPanel(transaction));
 
     return card;
   }
@@ -313,6 +425,8 @@
     const connector = document.createElement('div');
     const rightCell = document.createElement('div');
 
+    leftCell.className = 'droppable';
+    rightCell.className = 'droppable';
     connector.className = 'connector';
 
     row.appendChild(leftCell);
@@ -336,54 +450,131 @@
     timeline.appendChild(row);
   }
 
+  function showDetailsPanel(transaction) {
+    const detailsPanel = document.getElementById('detailsPanel');
+    detailsPanel.classList.add('active');
+
+    document.getElementById('transId').value = transaction.id;
+
+    if (selectedCard) {
+      selectedCard.classList.remove('selected');
+    }
+
+    const card = document.querySelector(`[data-index="${transaction.index}"]`);
+    card.classList.add('selected');
+    selectedCard = card;
+  }
+
+  function closeDetailsPanel() {
+    const detailsPanel = document.getElementById('detailsPanel');
+    detailsPanel.classList.remove('active');
+
+    if (selectedCard) {
+      selectedCard.classList.remove('selected');
+      selectedCard = null;
+    }
+  }
+
+  function updateTransaction() {
+    // Add your transaction update logic here
+    closeDetailsPanel();
+  }
+
   let draggedElement = null;
-  let originalParent = null;
-  let originalNextSibling = null;
 
   function handleDragStart(e) {
     draggedElement = e.target;
-    originalParent = e.target.parentNode;
-    originalNextSibling = e.target.nextSibling;
-    setTimeout(() => e.target.style.opacity = '0.5', 0);
+    e.target.style.opacity = '0.5';
   }
 
   function handleDragEnd(e) {
     e.target.style.opacity = '1';
-    const placeholders = document.querySelectorAll('.placeholder');
-    placeholders.forEach(placeholder => placeholder.remove());
+    const droppables = document.querySelectorAll('.droppable');
+    droppables.forEach(droppable => {
+      droppable.classList.remove('dragover');
+    });
   }
 
   function handleDragOver(e) {
     e.preventDefault();
-    const card = e.target.closest('.transaction-card');
-    if (card && card !== draggedElement) {
-      const rect = card.getBoundingClientRect();
-      const midpoint = rect.top + rect.height / 2;
-      if (e.clientY < midpoint) {
-        card.parentNode.insertBefore(draggedElement, card);
-      } else {
-        card.parentNode.insertBefore(draggedElement, card.nextSibling);
-      }
+  }
+
+  function handleDragEnter(e) {
+    e.preventDefault();
+    const droppable = e.target.closest('.droppable');
+    if (droppable) {
+      droppable.classList.add('dragover');
+    }
+  }
+
+  function handleDragLeave(e) {
+    const droppable = e.target.closest('.droppable');
+    if (droppable) {
+      droppable.classList.remove('dragover');
     }
   }
 
   function handleDrop(e) {
     e.preventDefault();
-    const dropTarget = e.target.closest('.transaction-card');
-    if (dropTarget && dropTarget !== draggedElement) {
-      const rect = dropTarget.getBoundingClientRect();
-      const midpoint = rect.top + rect.height / 2;
-      if (e.clientY < midpoint) {
-        dropTarget.parentNode.insertBefore(draggedElement, dropTarget);
-      } else {
-        dropTarget.parentNode.insertBefore(draggedElement, dropTarget.nextSibling);
+    const droppable = e.target.closest('.droppable');
+
+    if (droppable) {
+      droppable.classList.remove('dragover');
+
+      // If dropping on a card, handle insertion position
+      const cardBelow = e.target.closest('.transaction-card');
+      if (cardBelow && cardBelow !== draggedElement) {
+        const rect = cardBelow.getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+        if (e.clientY < midpoint) {
+          cardBelow.parentNode.insertBefore(draggedElement, cardBelow);
+        } else {
+          cardBelow.parentNode.insertBefore(draggedElement, cardBelow.nextSibling);
+        }
+      } else if (!cardBelow) {
+        // If not dropping on a card, append to the droppable area
+        droppable.appendChild(draggedElement);
       }
+
+      // Update transaction order and indices
+      updateTransactionOrder();
     }
   }
 
-  // Initialize with some example transactions
-  addTransaction('gives');
-  addTransaction('receives');
+  function updateTransactionOrder() {
+    const cards = document.querySelectorAll('.transaction-card');
+    cards.forEach((card, index) => {
+      const newIndex = index + 1;
+      card.dataset.index = newIndex;
+
+      // Update timeline number
+      const timelineNumber = card.querySelector('.timeline-number');
+      timelineNumber.textContent = newIndex;
+
+      // Update transaction ID
+      const transactionId = card.querySelector('.transaction-id');
+      const paddedIndex = String(newIndex).padStart(2, '0');
+      transactionId.textContent = `TRNS-${paddedIndex}`;
+
+      // Update transactions array
+      const transaction = transactions.find(t => t.index === parseInt(card.dataset.index));
+      if (transaction) {
+        transaction.index = newIndex;
+        transaction.id = `TRNS-${paddedIndex}`;
+      }
+    });
+  }
+
+  // Initialize the timeline with example transactions
+  window.addEventListener('DOMContentLoaded', () => {
+    // Add initial transactions
+    addTransaction('gives');
+    addTransaction('receives');
+    addTransaction('gives');
+    addTransaction('receives');
+    addTransaction('gives');
+  });
+
 </script>
 </body>
 </html>
